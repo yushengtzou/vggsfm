@@ -51,6 +51,7 @@ avg_pose: True
 
 save_to_disk: True
 SCENE_DIR: examples/kitchen
+OUTPUT_DIR: null
 
 resume_ckpt:  ckpt/vggsfm_v2_0_0.bin
 auto_download_ckpt: True
