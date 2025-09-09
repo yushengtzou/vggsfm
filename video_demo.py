@@ -56,9 +56,10 @@ def demo_fn(cfg: DictConfig):
         sequence_name=seq_name, return_path=True
     )
 
-    output_dir = batch[
-        "scene_dir"
-    ]  # which is also cfg.SCENE_DIR for DemoLoader
+    if "OUTPUT_DIR" in cfg and cfg.OUTPUT_DIR:
+        output_dir = cfg.OUTPUT_DIR
+    elif "output_dir" in cfg and cfg.output_dir:
+        output_dir = cfg.output_dir
 
     images = batch["image"]
     masks = batch["masks"] if batch["masks"] is not None else None
