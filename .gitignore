@@ -142,3 +142,5 @@ dmypy.json
 # Folder specific to your needs
 **/tmp/
 **/outputs/
+.DS_Store
+*.csv

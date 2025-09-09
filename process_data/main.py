@@ -68,18 +68,39 @@ def parse_frame_annotations(file_path: str) -> Optional[pd.DataFrame]:
         print(f"❌ An unexpected error occurred: {e}")
         return None
 
-# --- Example of how to use it ---
-# gt_df = parse_frame_annotations('path/to/your/frame_annotations.json')
-# if gt_df is not None:
-#     print("✅ Successfully loaded and parsed the ground truth data:")
-#     print(gt_df[['image.path', 'viewpoint.R', 'viewpoint.T']].head())
-
 if __name__ == "__main__":
-    predicted_df = parse_images_txt('/media/daniel/storage1/2.research/1.3d-reconstruct/results/CO3D/110_13051_23361/text/images.txt')
-    print("預測姿態 (Predicted Poses):")
-    print(predicted_df.head())
+    # --- 1. Define your target and load data ---
+    PREDICTED_PATH = '/media/daniel/storage1/2.research/1.3d-reconstruct/results/CO3D/110_13051_23361/text/images.txt'
+    GT_PATH = '/media/daniel/storage1/2.research/1.3d-reconstruct/dataset/CO3D/apple/frame_annotations.json'
+    TARGET_SEQUENCE = "110_13051_23361" # The sequence name from your file path
 
-    ground_truth_df = parse_frame_annotations('/media/daniel/storage1/2.research/1.3d-reconstruct/dataset/CO3D/apple/frame_annotations.json')
-    print("真實姿態 (Ground Truth Poses):")
-    print(ground_truth_df.head())
-    print(ground_truth_df[['image.path', 'viewpoint.R', 'viewpoint.T']].head())
+    predicted_df = parse_images_txt(PREDICTED_PATH)
+    ground_truth_df = parse_frame_annotations(GT_PATH)
+
+    if predicted_df is not None and ground_truth_df is not None:
+        # --- 2. Filter Ground Truth to the specific sequence ---
+        print(f"\n--- Filtering for sequence: {TARGET_SEQUENCE} ---")
+        filtered_gt_df = ground_truth_df[ground_truth_df['sequence_name'] == TARGET_SEQUENCE].copy()
+        print(f"Found {len(filtered_gt_df)} matching frames in ground truth.")
+
+        # --- 3. Prepare the key for merging ---
+        filtered_gt_df['filename'] = filtered_gt_df['image.path'].str.split('/').str[-1]
+
+        # --- 4. Perform a CLEAN merge ---
+        merged_df = pd.merge(
+            predicted_df,
+            filtered_gt_df,
+            left_on='name',
+            right_on='filename'
+        )
+
+        # --- 5. Sort the final result by frame number ---
+        print("\n--- Sorting by frame number to ensure correct sequence ---")
+        merged_df.sort_values(by='frame_number', inplace=True)
+        merged_df.reset_index(drop=True, inplace=True)
+
+        print("\n✅ Final, Cleaned, and Sorted Data!")
+        print(merged_df[['name', 'frame_number', 'qw', 'tx', 'ty', 'tz', 'viewpoint.R', 'viewpoint.T']].head())
+        # print(merged_df[['name', 'frame_number', 'qw', 'tx', 'viewpoint.R', 'viewpoint.T']].head())
+
+        merged_df.to_csv('merged_data.csv', index=False)
