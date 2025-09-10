@@ -103,4 +103,19 @@ if __name__ == "__main__":
         print(merged_df[['name', 'frame_number', 'qw', 'tx', 'ty', 'tz', 'viewpoint.R', 'viewpoint.T']].head())
         # print(merged_df[['name', 'frame_number', 'qw', 'tx', 'viewpoint.R', 'viewpoint.T']].head())
 
-        merged_df.to_csv('merged_data.csv', index=False)
+        #merged_df.to_csv('merged_data.csv', index=False)
+
+        import matplotlib.pyplot as plt
+
+        # Extract ground truth translation components
+        gt_T = pd.DataFrame(merged_df['viewpoint.T'].to_list(), columns=['gt_tx', 'gt_ty', 'gt_tz'])
+
+        plt.figure(figsize=(12, 6))
+        plt.title('Predicted vs. Ground Truth Camera Trajectory (X-axis)')
+        plt.xlabel('Frame Number')
+        plt.ylabel('X Translation')
+        plt.plot(merged_df['frame_number'], merged_df['tx'], label='Predicted TX', marker='.')
+        plt.plot(merged_df['frame_number'], gt_T['gt_tx'], label='Ground Truth TX', marker='.')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
